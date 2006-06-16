@@ -1,0 +1,45 @@
+# LINKER COMMAND FILE for cmpe121 Fall 2001 test program.
+# FILE: test.cmd
+#  REV: 2.0 28 April 2001/scp
+#       3.0 14 Nov 2001  /scp
+#           Library file declarations moved to after the affected object file: test.o   
+
+# This file is used by the assembler and linker to map where objects of all kinds will
+# be placed in memory. It should precisely agree with your particular memory map.
+
+# This block defines where objects (code and data) will be placed. 
+# These are placed in one of five different "segments" (See Redefining Sections, pg 3-10 in cx6811_v47.pdf)
+# Syntax: +seg .xxxx options 
+# See Segment Control Options, pg 6-8 in cx6811_v47.pdf
+# Once a "segment" base address is defined, it remains in effect until redefined later on.
+# RAM segments can overlap or even have the same base address as is done in this default example.
+#
++seg .text  -b 0x8000 -n .text  # program start address    (ROM)
++seg .const -a .text	        # constants follow program (ROM)
++seg .data  -b 0x0000           # initialized data         (RAM)
++seg .bss   -b 0x0000           # uninitialized data       (RAM)
+
+# These object files are linked into appropriate segments defined above in the order shown.
+rts.o                            
+test.o			          
+
+# The linker will look in these libraries to resolve externally defined calls.
+# libm.h11 -> machine lib. (always used)
+# libi.h11 -> integer lib.
+# libd.h11 -> double precision lib.
+# libf.h11 -> floating point lib.
+# Do not declare them all, since some implement variations of the same function. For example,
+# printf() is found in both the integer and floating point libraries. Obviously, the integer
+# version is much smaller and is preferred unless you need floating point support.
+"C:\COSMIC\CX11\lib\libi.h11"
+"C:\COSMIC\CX11\lib\libm.h11"
+
+# After linking the basic program code above, we define a new code section for placement of 
+# the ROM interrupt vectors.
++seg .const -b 0xffd6	# vectors start address                   
+ivectors.o              # interrupt vectors               
+
+# Set the _memory base pointer to be the same as bss section. The use of this pointer in
+# programming usually defines where heap space begins and normally follows immediately after
+# the bss section.
++def __memory=@.bss	# symbol used by library 
